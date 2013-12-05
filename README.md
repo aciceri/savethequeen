@@ -1,4 +1,5 @@
-Save the Queen
+
+ave the Queen
 ==============
 
 What is
@@ -8,7 +9,7 @@ Aliens are attacking London because they hate english, you must save the queen. 
 
 Technical information
 ---------------------
-The game require an HTML5/CSS3 compatible browser to work.
+The game requires an HTML5/CSS3 compatible browser to work.
 The page layout is developed using HTML5/CSS3 features, instead the game is written using Processing JS.
 
 Play

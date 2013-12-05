@@ -1,26 +1,46 @@
-PImage bg;
-Quiz q;
-Ufo u;
-Soldier s;
+import ddf.minim.*;
+
+Minim minim;
+AudioPlayer player;
+
+/* @pjs preload="img/background.png, img/splashscreen.png; */
+
+boolean splashscreen;
+PImage splashscreen_img;
+
+Background bg;
+Ufo ufo;
+Quiz quiz;
 
 void setup() {
   size(640, 480);
   frameRate(60);
-	/* @pjs preload="img/background.png"; */
-  bg = loadImage("img/background.png");
-  q = new Quiz();
-  u = new Ufo("img/ufo/ufo_", 12, 2, 0.9);
-  s = new Soldier("img/soldier/soldier_", 8, 10, 1);
-  q.randomSentence();
+  
+  splashscreen = true;
+  splashscreen_img = loadImage("img/splashscreen.png");
+  bg = new Background();
+  ufo = new Ufo(0, 1, 20, 15);
+  quiz = new Quiz();
+  
+  minim = new Minim(this);
+  player = minim.loadFile("snd/music.mp3");
+  player.play();
+  
+  quiz.randomSentence();
 }
 
 void draw() {
-  background(bg);
-  u.move();
-  u.display();
-  s.move();
-  s.display();
-  q.display();
+  if(splashscreen) background(splashscreen_img);
+  else {
+  bg.display();
+  ufo.move();
+  ufo.display();
+  quiz.display();
+  }
+}
+
+void mousePressed() {
+  splashscreen = false;
 }
 
 class Sentence {
@@ -125,24 +145,43 @@ class Quiz {
   }
 }
 
-class Ufo {
-  PImage[] images;
-  int xpos, imageCount, frame, padding, fps, i, j;
-  float speed;
-  boolean toRight;
+class Background {
+  PImage background_img;
+  Soldier soldier;
+  Alien alien;
   
-  Ufo(String imagePrefix, int count, int f, float s) {
+  Background() {
+    background_img = loadImage("img/background.png");
+    soldier = new Soldier(10, 1, width + 20, height - 200);
+    alien = new Alien(10, 1, width + 80, height - 215);
+  }
+  
+  void display() {
+    background(background_img);
+    soldier.move();
+    alien.move();
+    soldier.display();
+    alien.display();
+  }
+}
+
+class Sprite {
+  PImage[] images;
+  int imageCount, frame, fps, i, j;
+  float xpos, ypos, speed;
+  
+  Sprite(String imagePrefix, int count, int f, float s, float x, float y) {
     imageCount = count;
     images = new PImage[imageCount];
     
     for(int i = 0; i < imageCount; i++) {
       String filename = imagePrefix + i + ".png";
+      
       images[i] = loadImage(filename);
     }
     
-    padding = 20;
-    xpos = padding + 1;
-    toRight = true;
+    xpos = x;
+    ypos = y;
     speed = s;
     fps = f;
     i = 0;
@@ -150,13 +189,23 @@ class Ufo {
   }
   
   void display() {
-    j++;
     if(j == fps + 1) {
       i++;
       j=0;
     }
+    else j++;
     if(i == imageCount) i = 0;
-    image(images[i], xpos, 15);
+
+    image(images[i], xpos, ypos);
+  }
+}
+
+class Ufo extends Sprite {
+  boolean toRight = true;
+  int padding = 20;
+  
+  Ufo(int f, float s, float x, float y) {
+    super("img/ufo/ufo_", 12, f, s, x, y);
   }
   
   void move() {
@@ -171,40 +220,26 @@ class Ufo {
   }
 }
 
-class Soldier {
-  PImage[] images;
-  int xpos, imageCount, frame, padding, fps, i, j;
-  float speed;
+class Soldier extends Sprite {
   
-  Soldier(String imagePrefix, int count, int f, float s) {
-    imageCount = count;
-    images = new PImage[imageCount];
-    
-    for(int i = 0; i < imageCount; i++) {
-      String filename = imagePrefix + i + ".png";
-      
-      images[i] = loadImage(filename);
-    }
-    
-    xpos = width - 50;
-    speed = s;
-    fps = f;
-    i = 0;
-    j = 0;
-  }
-  
-  void display() {
-    if(j == fps + 1) {
-      i++;
-      j=0;
-    }
-    else j++;
-    if(i == imageCount) i = 0;
-    image(images[i], xpos, width - 360);
+  Soldier(int f, float s, float x, float y) {
+    super("img/soldier/soldier_", 6, f, s, x, y);
   }
   
   void move() {
     xpos -= speed;
-    if(xpos <= -20) xpos = width + 50;
+    if(xpos <= -100) xpos = width;
+  }
+}
+
+class Alien extends Sprite {
+  
+  Alien(int f, float s, float x, float y) {
+    super("img/alien/alien_", 6, f, s, x, y);
+  }
+  
+  void move() {
+    xpos -= speed;
+    if(xpos <= - 100) xpos = width;
   }
 }

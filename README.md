@@ -21,4 +21,5 @@ License
 The game is under GPL3, but some stuff are not created:
 * Ufo sprite (from Metal Slug)
 * Soldier sprite (from Metal Slug)
+* Alien sprite (from unknow game on www.spritedatabase.net)
 * Buckingham Palace (from www.dragoart.com)

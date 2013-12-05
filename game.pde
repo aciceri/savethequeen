@@ -1,14 +1,16 @@
 PImage bg;
 Quiz q;
 Ufo u;
+Soldier s;
 
 void setup() {
   size(640, 480);
   frameRate(60);
 	/* @pjs preload="img/background.png"; */
-	bg = loadImage("img/background.png");
+  bg = loadImage("img/background.png");
   q = new Quiz();
-  u = new Ufo("img/ufo/ufo_", 12);
+  u = new Ufo("img/ufo/ufo_", 12, 2, 0.9);
+  s = new Soldier("img/soldier/soldier_", 8, 10, 1);
   q.randomSentence();
 }
 
@@ -16,6 +18,8 @@ void draw() {
   background(bg);
   u.move();
   u.display();
+  s.move();
+  s.display();
   q.display();
 }
 
@@ -123,10 +127,11 @@ class Quiz {
 
 class Ufo {
   PImage[] images;
-  int xpos, imageCount, frame, padding, speed;
+  int xpos, imageCount, frame, padding, fps, i, j;
+  float speed;
   boolean toRight;
   
-  Ufo(String imagePrefix, int count) {
+  Ufo(String imagePrefix, int count, int f, float s) {
     imageCount = count;
     images = new PImage[imageCount];
     
@@ -137,13 +142,21 @@ class Ufo {
     
     padding = 20;
     xpos = padding + 1;
-    speed = 1;
     toRight = true;
+    speed = s;
+    fps = f;
+    i = 0;
+    j = 0;
   }
   
   void display() {
-    frame = (frame + 1) % imageCount;
-    image(images[frame], xpos, 15);
+    j++;
+    if(j == fps + 1) {
+      i++;
+      j=0;
+    }
+    if(i == imageCount) i = 0;
+    image(images[i], xpos, 15);
   }
   
   void move() {
@@ -155,5 +168,43 @@ class Ufo {
       xpos -= speed;
       if(xpos <= padding) toRight = true;
     }
+  }
+}
+
+class Soldier {
+  PImage[] images;
+  int xpos, imageCount, frame, padding, fps, i, j;
+  float speed;
+  
+  Soldier(String imagePrefix, int count, int f, float s) {
+    imageCount = count;
+    images = new PImage[imageCount];
+    
+    for(int i = 0; i < imageCount; i++) {
+      String filename = imagePrefix + i + ".png";
+      
+      images[i] = loadImage(filename);
+    }
+    
+    xpos = width - 50;
+    speed = s;
+    fps = f;
+    i = 0;
+    j = 0;
+  }
+  
+  void display() {
+    if(j == fps + 1) {
+      i++;
+      j=0;
+    }
+    else j++;
+    if(i == imageCount) i = 0;
+    image(images[i], xpos, width - 360);
+  }
+  
+  void move() {
+    xpos -= speed;
+    if(xpos <= -20) xpos = width + 50;
   }
 }

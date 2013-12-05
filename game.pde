@@ -5,7 +5,8 @@ Ufo u;
 void setup() {
   size(640, 480);
   frameRate(60);
-  bg = loadImage("img/background.png");
+	/* @pjs preload="img/background.png"; */
+	bg = loadImage("img/background.png");
   q = new Quiz();
   u = new Ufo("img/ufo/ufo_", 12);
   q.randomSentence();

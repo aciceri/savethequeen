@@ -1,14 +1,11 @@
-import ddf.minim.*;
-
-Minim minim;
-AudioPlayer player;
-
+import ddf.minim.*; //Not needed in Processing JS
 /* @pjs preload="img/background.png, img/splashscreen.png; */
 
-boolean splashscreen;
-PImage splashscreen_img;
+Minim minim; //For audio
+AudioPlayer music;
 
-Background bg;
+Splashscreen ss; //For starting background image
+Background bg; //For background(and some sprites)
 Ufo ufo;
 Quiz quiz;
 
@@ -16,31 +13,42 @@ void setup() {
   size(640, 480);
   frameRate(60);
   
-  splashscreen = true;
-  splashscreen_img = loadImage("img/splashscreen.png");
+  minim = new Minim(this); //For audio
+  music = minim.loadFile("snd/music.mp3"); //Background music
+  music.play(); //Starts at the beginning
+  
+  ss = new Splashscreen();
   bg = new Background();
   ufo = new Ufo(0, 1, 20, 15);
-  quiz = new Quiz();
-  
-  minim = new Minim(this);
-  player = minim.loadFile("snd/music.mp3");
-  player.play();
+  quiz = new Quiz(minim.loadFile("snd/correct.mp3"), minim.loadFile("snd/wrong.mp3"));
   
   quiz.randomSentence();
 }
 
 void draw() {
-  if(splashscreen) background(splashscreen_img);
+  if(ss.enable) {
+    ss.enterPressed();
+    ss.display();
+  }
   else {
-  bg.display();
-  ufo.move();
-  ufo.display();
-  quiz.display();
+    if(quiz.lose == false) {
+      bg.display();
+      ufo.move();
+      ufo.display();
+      quiz.display();
+    }
+    else {
+      music.pause();
+      background(0);
+      fill(255);
+      textAlign(CENTER, CENTER);
+      text("You lose\nYour score is " + quiz.score + "\nReload the page to try again...", 0, 0, width, height);
+    }
   }
 }
 
 void mousePressed() {
-  splashscreen = false;
+  quiz.clicked();
 }
 
 class Sentence {
@@ -69,6 +77,7 @@ class Sentence {
 class Button {
   String msg;
   int xpos, ypos, xsize, ysize;
+  boolean correct;
   color normal, hover;
   PFont f2;
   
@@ -98,27 +107,53 @@ class Button {
     text(msg, xpos, ypos - 4, xsize, ysize);
   }
   
-  void setText(String m) {
+  void setAnswer(String m, boolean c) {
     msg = m;
+    correct = c;
+  }
+  
+  boolean isClicked() {
+    if(mouseX >= xpos && mouseX <= (xpos + xsize) && mouseY >= ypos && mouseY <= (ypos + ysize))
+      return true;
+    else
+      return false;
+  }
+  
+  boolean isCorrect() {
+    if(correct)
+      return true;
+    else
+      return false;
   }
 }
 
 class Quiz {
+  int score;
+  boolean lose;
+  AudioPlayer correct_sound, wrong_sound;
   ArrayList<Sentence> list;
   Sentence actual_sentence;
   Button b1, b2, b3, b4;
   
-  Quiz() {
-    list = new ArrayList<Sentence>();
+  Quiz(AudioPlayer cs, AudioPlayer ws) {
+    score = 0;
+    boolean lose = false;
+    
+    correct_sound = cs;
+    wrong_sound = ws;
+    
     b1 = new Button(10, height - 45, 300, 32, color(30), color(100));
     b2 = new Button(10, height - 87, 300, 32, color(30), color(100));
     b3 = new Button(width - 310, height - 45, 300, 32, color(30), color(100));
     b4 = new Button(width - 310, height - 87, 300, 32, color(30), color(100));
+   
+    list = new ArrayList<Sentence>();
+    
     // Sentences here
     list.add(new Sentence("The apple", "by John tomorrow", "will be eaten", "is eaten", "is being eaten", "are ate"));
     list.add(new Sentence("My mother", "", "had the curtains changed", "has the curtains changed", "has the curtains change", "had the curtains change"));
     list.add(new Sentence("I", "nice", "am", "be", "are", "to be"));
-    list.add(new Sentence("Thomas", "now", "had the car whashed", "has the car whashed", "have the car whashed", "had the car whash"));
+    list.add(new Sentence("Thomas", "now", "had the car washed", "has the car washed", "have the car washed", "had the car wash"));
     list.add(new Sentence("I must", "", "will get my car fixed", "will get my car fix", "will have my car fixed", "get my car fixed"));
     list.add(new Sentence("She", " by Tom going to the supermarket.", "was seen", "was saw", "is seen", "had seen"));
     list.add(new Sentence("This program", "by Ciceri, Sala and Destefani two years ago", "has been developed", "was developed", "is developed", "will be developed"));
@@ -128,12 +163,69 @@ class Quiz {
   }
   
   void randomSentence() {
-    randomSeed(millis());
+    //randomSeed();
     actual_sentence = list.get(int(random(0, list.size())));
-    b1.setText(actual_sentence.solution);
-    b2.setText(actual_sentence.choice1);
-    b3.setText(actual_sentence.choice2);
-    b4.setText(actual_sentence.choice3);
+    switch(int(random(0, 4))) {
+      case 0:
+        b1.setAnswer(actual_sentence.solution, true);
+        b2.setAnswer(actual_sentence.choice1, false);
+        b3.setAnswer(actual_sentence.choice2, false);
+        b4.setAnswer(actual_sentence.choice3, false);
+        break;
+      case 1:
+        b1.setAnswer(actual_sentence.choice2, false);
+        b2.setAnswer(actual_sentence.solution, true);
+        b3.setAnswer(actual_sentence.choice2, false);
+        b4.setAnswer(actual_sentence.choice3, false);
+        break;
+      case 2:
+        b1.setAnswer(actual_sentence.choice2, false);
+        b2.setAnswer(actual_sentence.choice1, false);
+        b3.setAnswer(actual_sentence.solution, true);
+        b4.setAnswer(actual_sentence.choice3, false);
+        break;
+      case 3:
+        b1.setAnswer(actual_sentence.choice3, false);
+        b2.setAnswer(actual_sentence.choice1, false);
+        b3.setAnswer(actual_sentence.choice2, false);
+        b4.setAnswer(actual_sentence.solution, true);
+        break;
+    }
+  }
+  
+  void clicked() {
+    if(b1.isClicked())
+      if(b1.isCorrect())
+        this.win();
+      else
+        this.lose();
+    else if(b2.isClicked())
+      if(b2.isCorrect())
+        this.win();
+      else
+        this.lose();
+    else if(b3.isClicked())
+      if(b3.isCorrect())
+        this.win();
+      else
+        this.lose();
+    else if(b4.isClicked())
+      if(b4.isCorrect())
+        this.win();
+      else
+        this.lose();
+  }
+    
+  void win() {
+    correct_sound.rewind();
+    correct_sound.play();
+    this.randomSentence();
+    score++;
+  }
+  
+  void lose() {
+    wrong_sound.play();
+    lose = true;
   }
   
   void display() {
@@ -142,6 +234,25 @@ class Quiz {
     b2.display();
     b3.display();
     b4.display();
+  }
+}
+
+class Splashscreen {
+  boolean enable = true;
+  PImage splashscreen_img;
+  
+  Splashscreen() {
+    splashscreen_img = loadImage("img/splashscreen.png");
+  }
+  
+  void display() {
+    if(enable) background(splashscreen_img);
+  }
+  
+  void enterPressed() {
+    if (keyPressed)
+      if (key == ENTER)
+        enable = false;
   }
 }
 
@@ -165,7 +276,7 @@ class Background {
   }
 }
 
-class Sprite {
+class Sprite { //Abstract class for any sprite
   PImage[] images;
   int imageCount, frame, fps, i, j;
   float xpos, ypos, speed;
@@ -183,7 +294,7 @@ class Sprite {
     xpos = x;
     ypos = y;
     speed = s;
-    fps = f;
+    fps = f; //How many frame is a single sprite image
     i = 0;
     j = 0;
   }

@@ -26,12 +26,10 @@ void setup() {
 }
 
 void draw() {
-  if(ss.enable) {
-    ss.enterPressed();
+  if(ss.enable)
     ss.display();
-  }
   else {
-    if(quiz.lose == false) {
+    if(quiz.loseVar == false) {
       bg.display();
       ufo.move();
       ufo.display();
@@ -39,21 +37,19 @@ void draw() {
     }
     else {
       music.pause();
-      background(0);
-      fill(255);
-      textAlign(CENTER, CENTER);
-      text("You lose\nYour score is " + quiz.score + "\nReload the page to try again...", 0, 0, width, height);
+      quiz.gameOver();
     }
   }
 }
 
 void mousePressed() {
+  if(ss.enable == true) ss.enable = false;
   quiz.clicked();
 }
 
 class Sentence {
   String part1, part2, solution, choice1, choice2, choice3;
-  PFont f1;
+  PFont sentenceFont;
   
   Sentence(String p1, String p2, String sol, String c1, String c2, String c3) {
     part1 = p1;
@@ -62,13 +58,14 @@ class Sentence {
     choice1 = c1;
     choice2 = c2;
     choice3 = c3;
-    f1 = createFont("Arial", 20);
+    
+    sentenceFont = createFont("font/dejavu.ttf", 22);
   }
   
   void display() {
     fill(0);
     stroke(255);
-    textFont(f1);
+    textFont(sentenceFont);
     textAlign(CENTER);
     text(part1 + " ... " + part2, 0, height - 130, width, height - 132);
   }
@@ -79,7 +76,7 @@ class Button {
   int xpos, ypos, xsize, ysize;
   boolean correct;
   color normal, hover;
-  PFont f2;
+  PFont buttonFont;
   
   Button(int x, int y, int xs, int ys, color norm, color hov) {
     xpos = x;
@@ -88,7 +85,8 @@ class Button {
     ysize = ys;
     normal = norm;
     hover = hov;
-    f2 = createFont("Courier", 20);
+    
+    buttonFont = createFont("font/dejavu.ttf", 20);
   }
   
   void display() {
@@ -100,9 +98,9 @@ class Button {
     }
     stroke(0);
     rect(xpos, ypos, xsize, ysize, 10);
-
     fill(255);
-    textFont(f2);
+    
+    textFont(buttonFont);
     textAlign(CENTER, CENTER);
     text(msg, xpos, ypos - 4, xsize, ysize);
   }
@@ -129,18 +127,21 @@ class Button {
 
 class Quiz {
   int score;
-  boolean lose;
+  boolean loseVar;
   AudioPlayer correct_sound, wrong_sound;
+  PFont gameOverFont;
   ArrayList<Sentence> list;
   Sentence actual_sentence;
   Button b1, b2, b3, b4;
   
   Quiz(AudioPlayer cs, AudioPlayer ws) {
     score = 0;
-    boolean lose = false;
+    boolean loseVar = false;
     
     correct_sound = cs;
     wrong_sound = ws;
+    
+    gameOverFont = createFont("font/dejavu.ttf", 24);
     
     b1 = new Button(10, height - 45, 300, 32, color(30), color(100));
     b2 = new Button(10, height - 87, 300, 32, color(30), color(100));
@@ -225,7 +226,15 @@ class Quiz {
   
   void lose() {
     wrong_sound.play();
-    lose = true;
+    loseVar = true;
+  }
+  
+  void gameOver() {
+    background(0);
+    fill(255);
+    textFont(gameOverFont);
+    textAlign(CENTER, CENTER);
+    text("You lose\nYour score is " + this.score + "\nReload the page to try again...", 0, 0, width, height);
   }
   
   void display() {
@@ -240,19 +249,20 @@ class Quiz {
 class Splashscreen {
   boolean enable = true;
   PImage splashscreen_img;
+  PFont splashscreenFont;
   
   Splashscreen() {
     splashscreen_img = loadImage("img/splashscreen.png");
+    splashscreenFont = createFont("font/dejavu.ttf", 20);
   }
   
   void display() {
-    if(enable) background(splashscreen_img);
-  }
-  
-  void enterPressed() {
-    if (keyPressed)
-      if (key == ENTER)
-        enable = false;
+    if(enable) {
+      background(splashscreen_img);
+      fill(255);
+      textFont(splashscreenFont);
+      text("Aliens are attacking London because they hate English.\nYour goal is to save the queen.\nTo do this, click on the correct answer.\n\nClick on the screen to start...", 20, 20, width, height);
+    }
   }
 }
 

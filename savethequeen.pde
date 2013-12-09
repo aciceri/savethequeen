@@ -29,7 +29,7 @@ void draw() {
   if(ss.enable)
     ss.display();
   else {
-    if(quiz.loseVar == false) {
+    if(!quiz.loseVar) {
       bg.display();
       ufo.move();
       ufo.display();
@@ -43,8 +43,8 @@ void draw() {
 }
 
 void mousePressed() {
-  if(ss.enable == true) ss.enable = false;
-  quiz.clicked();
+  if(!ss.enable && !quiz.loseVar) quiz.clicked();
+  if(ss.enable) ss.enable = false;
 }
 
 class Sentence {
@@ -157,7 +157,7 @@ class Quiz {
     list.add(new Sentence("Thomas", "now", "had the car washed", "has the car washed", "have the car washed", "had the car wash"));
     list.add(new Sentence("I must", "", "will get my car fixed", "will get my car fix", "will have my car fixed", "get my car fixed"));
     list.add(new Sentence("She", " by Tom going to the supermarket.", "was seen", "was saw", "is seen", "had seen"));
-    list.add(new Sentence("This program", "by Ciceri, Sala and Destefani two years ago", "has been developed", "was developed", "is developed", "will be developed"));
+    list.add(new Sentence("This program", "two years ago", "has been developed", "was developed", "is developed", "will be developed"));
     list.add(new Sentence("There letters", "by Peter", " were given me", "was given me", "were given to me", "were give me"));
     list.add(new Sentence("Everybody", "", "wants to be loved", "will be loved", "wants to be love", "want to be loved"));
     list.add(new Sentence("The house", "by a lightning", "was hit", "is hit", "is being", "is hitten"));

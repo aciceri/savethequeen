@@ -6,6 +6,7 @@ AudioPlayer music;
 
 Splashscreen ss; //For starting background image
 Background bg; //For background(and some sprites)
+GameOver gameover;
 Ufo ufo;
 Quiz quiz;
 
@@ -19,6 +20,7 @@ void setup() {
   
   ss = new Splashscreen();
   bg = new Background();
+  gameover = new GameOver();
   ufo = new Ufo(0, 1, 20, 15);
   quiz = new Quiz(minim.loadFile("snd/correct.mp3"), minim.loadFile("snd/wrong.mp3"));
   
@@ -37,7 +39,9 @@ void draw() {
     }
     else {
       music.pause();
-      quiz.gameOver();
+      gameover.animation();
+      if(gameover.animation_finished)
+        gameover.tryAgain(quiz.score);
     }
   }
 }
@@ -129,19 +133,16 @@ class Quiz {
   int score;
   boolean loseVar;
   AudioPlayer correct_sound, wrong_sound;
-  PFont gameOverFont;
   ArrayList<Sentence> list;
   Sentence actual_sentence;
   Button b1, b2, b3, b4;
   
   Quiz(AudioPlayer cs, AudioPlayer ws) {
     score = 0;
-    boolean loseVar = false;
+    loseVar = false;
     
     correct_sound = cs;
     wrong_sound = ws;
-    
-    gameOverFont = createFont("font/dejavu.ttf", 24);
     
     b1 = new Button(10, height - 45, 300, 32, color(30), color(100));
     b2 = new Button(10, height - 87, 300, 32, color(30), color(100));
@@ -229,20 +230,39 @@ class Quiz {
     loseVar = true;
   }
   
-  void gameOver() {
-    background(0);
-    fill(255);
-    textFont(gameOverFont);
-    textAlign(CENTER, CENTER);
-    text("You lose\nYour score is " + this.score + "\nReload the page to try again...", 0, 0, width, height);
-  }
-  
   void display() {
     actual_sentence.display();
     b1.display();
     b2.display();
     b3.display();
     b4.display();
+  }
+}
+
+class GameOver {
+  PFont gameOverFont;
+  Explosion explosion;
+  boolean animation_finished;
+  int i;
+  
+  GameOver() {
+    gameOverFont = createFont("font/dejavu.ttf", 24);
+    explosion = new Explosion(5, 0, 272, 50);
+    animation_finished = false;
+  }
+  
+  void animation() { 
+    explosion.display();
+    i+=1;
+    if(i == 75) animation_finished = true;
+  }
+  
+  void tryAgain(int score) {
+    background(0);
+    fill(255);
+    textFont(gameOverFont);
+    textAlign(CENTER, CENTER);
+    text("You lose\nYour score is " + score + "\nReload the page and try again...", 0, 0, width, height);
   }
 }
 
@@ -338,6 +358,12 @@ class Ufo extends Sprite {
       xpos -= speed;
       if(xpos <= padding) toRight = true;
     }
+  }
+}
+
+class Explosion extends Sprite {
+  Explosion(int f, float s, float x, float y) {
+    super("img/explosion/explosion_", 15, f, s, x, y);
   }
 }
 

@@ -1,4 +1,4 @@
-#Save the Queen
+# Save the Queen
 
 ## What is
 This is a simple web game written using Processing framework.
